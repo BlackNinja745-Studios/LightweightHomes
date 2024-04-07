@@ -5,6 +5,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.blackninja745studios.lightweightwarps.home.HomeCommand;
 import org.blackninja745studios.lightweightwarps.home.RemoveHomeCommand;
 import org.blackninja745studios.lightweightwarps.home.SetHomeCommand;
+import org.blackninja745studios.lightweightwarps.spawn.SpawnCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionDefault;
@@ -16,12 +17,14 @@ public final class LightweightWarps extends JavaPlugin {
 
     public static final String NO_PERMISSIONS = "You do not have permission to use this command.";
     public static final String INVALID_ARGUMENTS = "Invalid arguments.";
+    public static final String NOT_PLAYER = "This command can only be executed by a player.";
 
     public static final Permission permissionManageHomes = new Permission("lightweightwarps.home.managehomes");
 
     @Override
     public void onEnable() {
         initializeHomeModule();
+        initializeSpawnModule();
         getLogger().log(Level.INFO, "Successfully initialized Lightweight Warps!");
     }
 
@@ -37,6 +40,10 @@ public final class LightweightWarps extends JavaPlugin {
         getServer().getCommandMap().register("lightweightwarps", new HomeCommand(this));
         getServer().getCommandMap().register("lightweightwarps", new SetHomeCommand(this));
         getServer().getCommandMap().register("lightweightwarps", new RemoveHomeCommand(this));
+    }
+
+    public void initializeSpawnModule() {
+        getServer().getCommandMap().register("lightweightwarps", new SpawnCommand());
     }
 
     public static Component addPluginPrefix(Component c) {
