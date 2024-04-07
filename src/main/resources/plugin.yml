@@ -1,0 +1,7 @@
+name: LightweightWarps
+version: '${project.version}'
+main: org.blackninja745studios.lightweightwarps.LightweightWarps
+api-version: 1.16
+load: STARTUP
+authors: [BlackNinja745]
+website: https://bn745studios.com
