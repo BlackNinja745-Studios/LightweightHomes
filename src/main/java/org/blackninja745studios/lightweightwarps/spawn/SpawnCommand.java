@@ -2,6 +2,7 @@ package org.blackninja745studios.lightweightwarps.spawn;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.blackninja745studios.lightweightwarps.CommandError;
 import org.blackninja745studios.lightweightwarps.LightweightWarps;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -30,7 +31,7 @@ public class SpawnCommand extends Command {
             p.teleport(p.getWorld().getSpawnLocation());
         } else {
             sender.sendMessage(LightweightWarps.addPluginPrefix(
-                    Component.text(LightweightWarps.NOT_PLAYER, NamedTextColor.RED)
+                    Component.text(CommandError.OFFLINE_PLAYER, NamedTextColor.RED)
             ));
         }
 

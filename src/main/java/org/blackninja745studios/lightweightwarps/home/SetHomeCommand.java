@@ -2,6 +2,8 @@ package org.blackninja745studios.lightweightwarps.home;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.blackninja745studios.lightweightwarps.CommandError;
 import org.blackninja745studios.lightweightwarps.LightweightWarps;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -10,8 +12,6 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.permissions.Permission;
-import org.bukkit.permissions.PermissionDefault;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
@@ -19,122 +19,109 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 public class SetHomeCommand extends Command {
+    private static final String COMMAND_NAME = "sethome";
 
     private final LightweightWarps plugin;
-    private final Permission setHome = new Permission("lightweightwarps.home.sethome");
 
     public SetHomeCommand(LightweightWarps plugin) {
-        super("sethome", "Sets a player's home.", "/sethome [<player> <x> <y> <z> <world>]", List.of());
-        setHome.setDefault(PermissionDefault.TRUE);
-        Bukkit.getPluginManager().addPermission(setHome);
+        super(COMMAND_NAME, "Sets a player's home.", "/sethome [<player> <x> <y> <z> <world>]", List.of());
         this.plugin = plugin;
     }
 
     @Override
     public boolean execute(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
-        if (args.length == 0) {
-            if (sender instanceof Player p) {
-                if (!p.hasPermission(setHome)) {
-                    p.sendMessage(LightweightWarps.addPluginPrefix(
-                            Component.text(LightweightWarps.NO_PERMISSIONS, NamedTextColor.RED)
-                    ));
+        switch (args.length) {
+            case 0 -> {
+                if (sender instanceof Player player) {
+                    if (!player.hasPermission(HomePermissions.SET_HOME)) {
+                        player.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
+                        return true;
+                    }
+
+                    Location loc = player.getLocation();
+                    createHome(player, loc);
+
+                    player.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                        "Created home at (%.1f, %.1f, %.1f).",
+                        loc.getX(), loc.getY(), loc.getZ()
+                    ), NamedTextColor.WHITE)));
+                } else {
+                    sender.sendMessage(CommandError.messageOf(CommandError.NOT_PLAYER));
+                }
+            }
+            case 1 -> {
+                if (sender instanceof Player player) {
+                    Player target = Bukkit.getPlayer(args[0]);
+
+                    if (target != null && target.getUniqueId().equals(player.getUniqueId())) {
+                        return player.performCommand(COMMAND_NAME);
+                    }
+
+                    if (!sender.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                        sender.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
+                        return true;
+                    }
+
+                    if (target != null) {
+                        Location loc = player.getLocation();
+                        createHome(target, loc);
+
+                        player.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                                "Created home for %s at (%.1f, %.1f, %.1f).",
+                                PlainTextComponentSerializer.plainText().serialize(target.displayName()),
+                                loc.getX(), loc.getY(), loc.getZ()
+                        ), NamedTextColor.WHITE)));
+                    } else {
+                        sender.sendMessage(CommandError.messageOf(CommandError.OFFLINE_PLAYER));
+                    }
+                } else {
+                    sender.sendMessage(CommandError.messageOf(CommandError.NOT_PLAYER));
+                }
+            }
+            case 5 -> {
+                if (!sender.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                    sender.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                     return true;
                 }
 
-                Location l = p.getLocation();
-                createHome(p, l);
+                Player target = Bukkit.getPlayer(args[0]);
+                Location loc = parseLocationFromArgs(args);
 
-                p.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text(String.format("Created home at (%.1f, %.1f, %.1f).", l.getX(), l.getY(), l.getZ()), NamedTextColor.WHITE)
-                ));
-            } else {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text("This command must be executed by a player.", NamedTextColor.RED)
-                ));
+                if (target == null) {
+                    sender.sendMessage(CommandError.messageOf(CommandError.OFFLINE_PLAYER));
+                    return true;
+                }
+
+                if (loc == null) {
+                    sender.sendMessage(CommandError.messageOf(CommandError.INVALID_ARGUMENTS));
+                    return true;
+                }
+
+                createHome(target, loc);
+
+                sender.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                        "Created home for %s at (%.1f, %.1f, %.1f) in world \"%s.\"",
+                        PlainTextComponentSerializer.plainText().serialize(target.displayName()),
+                        loc.getX(), loc.getY(), loc.getZ(), loc.getWorld().getName()
+                ), NamedTextColor.WHITE)));
             }
-        } else if (args.length == 1) {
-            if (!(sender instanceof Player p)) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text("This command must be executed by a player.", NamedTextColor.RED)
-                ));
-                return true;
-            }
-
-            Player t = Bukkit.getPlayer(args[0]);
-
-            if (t != null && t.getUniqueId().equals(p.getUniqueId())) {
-                p.performCommand("sethome");
-                return true;
-            }
-
-            if (!sender.hasPermission(LightweightWarps.permissionManageHomes)) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text(LightweightWarps.NO_PERMISSIONS, NamedTextColor.RED)
-                ));
-                return true;
-            }
-
-            if (t == null) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text("Player must be online.", NamedTextColor.RED)
-                ));
-            } else {
-                Location l = p.getLocation();
-                createHome(t, l);
-                p.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text(String.format("Created home at (%.1f, %.1f, %.1f).", l.getX(), l.getY(), l.getZ()), NamedTextColor.WHITE)
-                ));
-            }
-
-        } else if (args.length == 5) {
-            if (!sender.hasPermission(LightweightWarps.permissionManageHomes)) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text(LightweightWarps.NO_PERMISSIONS, NamedTextColor.RED)
-                ));
-                return true;
-            }
-
-            Player p = Bukkit.getPlayer(args[0]);
-
-            if (p == null) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text("Player must be online.", NamedTextColor.RED)
-                ));
-                return true;
-            }
-
-            Location l = getLocationFromArgs(args);
-
-            if (l == null) {
-                sender.sendMessage(LightweightWarps.addPluginPrefix(
-                        Component.text(LightweightWarps.INVALID_ARGUMENTS, NamedTextColor.RED)
-                ));
-                return true;
-            }
-
-            createHome(p, l);
-            p.sendMessage(LightweightWarps.addPluginPrefix(
-                    Component.text(String.format("Created home at (%.1f, %.1f, %.1f).", l.getX(), l.getY(), l.getZ()), NamedTextColor.WHITE)
-            ));
-        } else {
-            sender.sendMessage(LightweightWarps.addPluginPrefix(
-                    Component.text(LightweightWarps.INVALID_ARGUMENTS, NamedTextColor.RED)
-            ));
+            default -> sender.sendMessage(CommandError.messageOf(CommandError.INVALID_ARGUMENTS));
         }
 
         return true;
     }
 
     private void createHome(Player player, Location l) {
+        final String KEY_PREFIX = "lightweightwarps.home.";
         PersistentDataContainer data = player.getPersistentDataContainer();
 
-        data.set(new NamespacedKey(plugin, "lightweightwarps.home.x"), PersistentDataType.DOUBLE, l.getX());
-        data.set(new NamespacedKey(plugin, "lightweightwarps.home.y"), PersistentDataType.DOUBLE, l.getY());
-        data.set(new NamespacedKey(plugin, "lightweightwarps.home.z"), PersistentDataType.DOUBLE, l.getZ());
-        data.set(new NamespacedKey(plugin, "lightweightwarps.home.world"), PersistentDataType.STRING, l.getWorld().getUID().toString());
+        data.set(new NamespacedKey(plugin, KEY_PREFIX + "x"), PersistentDataType.DOUBLE, l.getX());
+        data.set(new NamespacedKey(plugin, KEY_PREFIX + "y"), PersistentDataType.DOUBLE, l.getY());
+        data.set(new NamespacedKey(plugin, KEY_PREFIX + "z"), PersistentDataType.DOUBLE, l.getZ());
+        data.set(new NamespacedKey(plugin, KEY_PREFIX + "world"), PersistentDataType.STRING, l.getWorld().getUID().toString());
     }
 
-    private static Location getLocationFromArgs(String[] args) {
+    private static Location parseLocationFromArgs(String[] args) {
         if (args.length != 5)
             return null;
 
@@ -144,16 +131,12 @@ public class SetHomeCommand extends Command {
             x = Double.parseDouble(args[1]);
             y = Double.parseDouble(args[2]);
             z = Double.parseDouble(args[3]);
-        } catch (Exception ignored) {
+        } catch (NumberFormatException nfe) {
             return null;
         }
 
-        World w = Bukkit.getWorld(args[4]);
+        World world = Bukkit.getWorld(args[4]);
 
-        if (w == null) {
-            return null;
-        }
-
-        return new Location(w, x, y, z);
+        return world == null ? null : new Location(world, x, y, z);
     }
 }

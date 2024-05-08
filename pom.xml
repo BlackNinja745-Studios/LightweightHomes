@@ -40,6 +40,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <outputDirectory>server/plugins</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
