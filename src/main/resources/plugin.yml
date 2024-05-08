@@ -1,7 +1,7 @@
-name: LightweightWarps
+name: LightweightHomes
 version: '${project.version}'
-main: org.blackninja745studios.lightweightwarps.LightweightWarps
-api-version: 1.16
+main: org.blackninja745studios.lightweighthomes.LightweightHomes
+api-version: 1.18
 load: STARTUP
-authors: [BlackNinja745]
-website: https://bn745studios.com
+authors: [BlackNinja745 Studios]
+website: https://bn745studios.com/

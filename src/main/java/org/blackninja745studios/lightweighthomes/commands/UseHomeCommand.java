@@ -1,8 +1,9 @@
-package org.blackninja745studios.lightweightwarps.home;
+package org.blackninja745studios.lightweighthomes.commands;
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.blackninja745studios.lightweightwarps.CommandError;
-import org.blackninja745studios.lightweightwarps.LightweightWarps;
+import org.blackninja745studios.lightweighthomes.CommandError;
+import org.blackninja745studios.lightweighthomes.LightweightHomes;
+import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -16,12 +17,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.List;
 
-public class HomeCommand extends Command {
+public class UseHomeCommand extends Command {
 
     private static final String COMMAND_NAME = "home";
-    private final LightweightWarps plugin;
+    private final LightweightHomes plugin;
 
-    public HomeCommand(LightweightWarps plugin) {
+    public UseHomeCommand(LightweightHomes plugin) {
         super(COMMAND_NAME, "Returns a calling player to their set home.", "/home", List.of());
         this.plugin = plugin;
     }
@@ -31,7 +32,7 @@ public class HomeCommand extends Command {
         if (sender instanceof Player player) {
             switch (args.length) {
                 case 0 -> {
-                    if (!player.hasPermission(HomePermissions.USE_HOME)) {
+                    if (!player.hasPermission(Permissions.USE_HOME)) {
                         player.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                         return true;
                     }
@@ -47,7 +48,7 @@ public class HomeCommand extends Command {
                         return player.performCommand(COMMAND_NAME);
                     }
 
-                    if (!player.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                    if (!player.hasPermission(Permissions.MANAGE_HOMES)) {
                         player.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                         return true;
                     }
@@ -77,8 +78,7 @@ public class HomeCommand extends Command {
     }
 
     private Location buildLocationFromData(PersistentDataContainer data) {
-        final String KEY_PREFIX = "lightweightwarps.home.";
-        String[] keys = { KEY_PREFIX + "x", KEY_PREFIX + "y", KEY_PREFIX + "z"};
+        String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z"};
 
         double[] loc = new double[3];
 
@@ -91,8 +91,8 @@ public class HomeCommand extends Command {
 
         String worldUID;
 
-        if (data.has(new NamespacedKey(plugin, KEY_PREFIX + "world"), PersistentDataType.STRING))
-            worldUID = data.get(new NamespacedKey(plugin, KEY_PREFIX + "world"), PersistentDataType.STRING);
+        if (data.has(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING))
+            worldUID = data.get(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING);
         else
             return null;
 

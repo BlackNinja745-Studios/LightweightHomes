@@ -1,10 +1,11 @@
-package org.blackninja745studios.lightweightwarps.home;
+package org.blackninja745studios.lightweighthomes.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.blackninja745studios.lightweightwarps.CommandError;
-import org.blackninja745studios.lightweightwarps.LightweightWarps;
+import org.blackninja745studios.lightweighthomes.CommandError;
+import org.blackninja745studios.lightweighthomes.LightweightHomes;
+import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -21,10 +22,10 @@ import java.util.List;
 public class SetHomeCommand extends Command {
     private static final String COMMAND_NAME = "sethome";
 
-    private final LightweightWarps plugin;
+    private final LightweightHomes plugin;
 
-    public SetHomeCommand(LightweightWarps plugin) {
-        super(COMMAND_NAME, "Sets a player's home.", "/sethome [<player> <x> <y> <z> <world>]", List.of());
+    public SetHomeCommand(LightweightHomes plugin) {
+        super(COMMAND_NAME, "Sets a player's home.", "/sethome [<player>] [<x> <y> <z> <world>]", List.of());
         this.plugin = plugin;
     }
 
@@ -33,7 +34,7 @@ public class SetHomeCommand extends Command {
         switch (args.length) {
             case 0 -> {
                 if (sender instanceof Player player) {
-                    if (!player.hasPermission(HomePermissions.SET_HOME)) {
+                    if (!player.hasPermission(Permissions.SET_HOME)) {
                         player.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                         return true;
                     }
@@ -41,7 +42,7 @@ public class SetHomeCommand extends Command {
                     Location loc = player.getLocation();
                     createHome(player, loc);
 
-                    player.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                    player.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                         "Created home at (%.1f, %.1f, %.1f).",
                         loc.getX(), loc.getY(), loc.getZ()
                     ), NamedTextColor.WHITE)));
@@ -57,7 +58,7 @@ public class SetHomeCommand extends Command {
                         return player.performCommand(COMMAND_NAME);
                     }
 
-                    if (!sender.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                    if (!sender.hasPermission(Permissions.MANAGE_HOMES)) {
                         sender.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                         return true;
                     }
@@ -66,7 +67,7 @@ public class SetHomeCommand extends Command {
                         Location loc = player.getLocation();
                         createHome(target, loc);
 
-                        player.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                        player.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                                 "Created home for %s at (%.1f, %.1f, %.1f).",
                                 PlainTextComponentSerializer.plainText().serialize(target.displayName()),
                                 loc.getX(), loc.getY(), loc.getZ()
@@ -79,7 +80,7 @@ public class SetHomeCommand extends Command {
                 }
             }
             case 5 -> {
-                if (!sender.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                if (!sender.hasPermission(Permissions.MANAGE_HOMES)) {
                     sender.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                     return true;
                 }
@@ -99,7 +100,7 @@ public class SetHomeCommand extends Command {
 
                 createHome(target, loc);
 
-                sender.sendMessage(LightweightWarps.addPluginPrefix(Component.text(String.format(
+                sender.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                         "Created home for %s at (%.1f, %.1f, %.1f) in world \"%s.\"",
                         PlainTextComponentSerializer.plainText().serialize(target.displayName()),
                         loc.getX(), loc.getY(), loc.getZ(), loc.getWorld().getName()
@@ -112,13 +113,12 @@ public class SetHomeCommand extends Command {
     }
 
     private void createHome(Player player, Location l) {
-        final String KEY_PREFIX = "lightweightwarps.home.";
         PersistentDataContainer data = player.getPersistentDataContainer();
 
-        data.set(new NamespacedKey(plugin, KEY_PREFIX + "x"), PersistentDataType.DOUBLE, l.getX());
-        data.set(new NamespacedKey(plugin, KEY_PREFIX + "y"), PersistentDataType.DOUBLE, l.getY());
-        data.set(new NamespacedKey(plugin, KEY_PREFIX + "z"), PersistentDataType.DOUBLE, l.getZ());
-        data.set(new NamespacedKey(plugin, KEY_PREFIX + "world"), PersistentDataType.STRING, l.getWorld().getUID().toString());
+        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "x"), PersistentDataType.DOUBLE, l.getX());
+        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "y"), PersistentDataType.DOUBLE, l.getY());
+        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "z"), PersistentDataType.DOUBLE, l.getZ());
+        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING, l.getWorld().getUID().toString());
     }
 
     private static Location parseLocationFromArgs(String[] args) {

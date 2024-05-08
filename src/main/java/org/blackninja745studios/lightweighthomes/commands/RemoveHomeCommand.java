@@ -1,10 +1,11 @@
-package org.blackninja745studios.lightweightwarps.home;
+package org.blackninja745studios.lightweighthomes.commands;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.blackninja745studios.lightweightwarps.CommandError;
-import org.blackninja745studios.lightweightwarps.LightweightWarps;
+import org.blackninja745studios.lightweighthomes.CommandError;
+import org.blackninja745studios.lightweighthomes.LightweightHomes;
+import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -19,9 +20,9 @@ import java.util.List;
 public class RemoveHomeCommand extends Command {
     private static final String COMMAND_NAME = "removehome";
 
-    private final LightweightWarps plugin;
+    private final LightweightHomes plugin;
 
-    public RemoveHomeCommand(LightweightWarps plugin) {
+    public RemoveHomeCommand(LightweightHomes plugin) {
         super(COMMAND_NAME, "Deletes a player's home.", "/removehome [<player>]", List.of());
         this.plugin = plugin;
     }
@@ -31,13 +32,13 @@ public class RemoveHomeCommand extends Command {
         switch (args.length) {
             case 0 -> {
                 if (sender instanceof Player player) {
-                    if (!player.hasPermission(HomePermissions.REMOVE_HOME)) {
+                    if (!player.hasPermission(Permissions.REMOVE_HOME)) {
                         player.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                         return true;
                     }
 
                     if (removeHome(player)) {
-                        player.sendMessage(LightweightWarps.addPluginPrefix(
+                        player.sendMessage(LightweightHomes.addPluginPrefix(
                                 Component.text("Removed your home!", NamedTextColor.WHITE)
                         ));
                     } else {
@@ -56,7 +57,7 @@ public class RemoveHomeCommand extends Command {
                     }
                 }
 
-                if (!sender.hasPermission(HomePermissions.MANAGE_HOMES)) {
+                if (!sender.hasPermission(Permissions.MANAGE_HOMES)) {
                     sender.sendMessage(CommandError.messageOf(CommandError.NO_PERMISSIONS));
                     return true;
                 }
@@ -65,7 +66,7 @@ public class RemoveHomeCommand extends Command {
                     sender.sendMessage(CommandError.messageOf(CommandError.OFFLINE_PLAYER));
                 } else {
                     if (removeHome(target)) {
-                        sender.sendMessage(LightweightWarps.addPluginPrefix(Component.text(
+                        sender.sendMessage(LightweightHomes.addPluginPrefix(Component.text(
                             PlainTextComponentSerializer.plainText().serialize(target.displayName()) + "'s home removed!", NamedTextColor.WHITE
                         )));
                     } else {
@@ -84,16 +85,15 @@ public class RemoveHomeCommand extends Command {
     private boolean removeHome(Player p) {
         PersistentDataContainer data = p.getPersistentDataContainer();
 
-        final String KEY_PREFIX = "lightweightwarps.home.";
-        String[] keys = { KEY_PREFIX + "x", KEY_PREFIX + "y", KEY_PREFIX + "z" };
+        String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z" };
 
         for (String key : keys)
             if (data.has(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE))
                 data.remove(new NamespacedKey(plugin, key));
 
-        boolean hasWorldKey = data.has(new NamespacedKey(plugin, KEY_PREFIX + "world"), PersistentDataType.STRING);
+        boolean hasWorldKey = data.has(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING);
         if (hasWorldKey)
-            data.remove(new NamespacedKey(plugin, KEY_PREFIX + "world"));
+            data.remove(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"));
 
         return hasWorldKey;
     }

@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.blackninja745studios</groupId>
-    <artifactId>LightweightWarps</artifactId>
+    <artifactId>LightweightHomes</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>LightweightWarps</name>
+    <name>LightweightHomes</name>
 
     <properties>
         <java.version>16</java.version>

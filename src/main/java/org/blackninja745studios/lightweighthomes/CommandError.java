@@ -1,4 +1,4 @@
-package org.blackninja745studios.lightweightwarps;
+package org.blackninja745studios.lightweighthomes;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -10,7 +10,7 @@ public class CommandError {
     public static final String OFFLINE_PLAYER = "That player isn't online.";
 
     public static Component messageOf(String message) {
-        return LightweightWarps.addPluginPrefix(
+        return LightweightHomes.addPluginPrefix(
                 Component.text(message, NamedTextColor.RED)
         );
     }
