@@ -29,25 +29,22 @@ public class HomeDataManager {
     }
 
     public Location getHomeLocation(PersistentDataContainer data) {
-        double[] loc = new double[3];
-
-        for (int i = 0; i < 3; ++i) {
-            if (data.has(KEYS[i]))
-                loc[i] = data.get(KEYS[i], PersistentDataType.DOUBLE);
-            else
-                return null;
-        }
-
-        String worldUID;
-
-        if (data.has(KEYS[3]))
-            worldUID = data.get(KEYS[3], PersistentDataType.STRING);
-        else
+        if (!hasHomeData(data))
             return null;
 
-        World world = Bukkit.getServer().getWorld(UUID.fromString(worldUID));
+        World world = Bukkit.getServer().getWorld(
+            UUID.fromString(data.get(KEYS[3], PersistentDataType.STRING))
+        );
 
-        return world == null ? null : new Location(world, loc[0], loc[1], loc[2]);
+        if (world == null)
+            return null;
+
+        return new Location(
+            world,
+            data.get(KEYS[0], PersistentDataType.DOUBLE),
+            data.get(KEYS[1], PersistentDataType.DOUBLE),
+            data.get(KEYS[2], PersistentDataType.DOUBLE)
+        );
     }
 
     public void createHome(PersistentDataContainer data, Location l) {
