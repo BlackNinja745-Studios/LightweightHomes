@@ -1,32 +1,32 @@
 package org.blackninja745studios.lightweighthomes.commands;
 
+import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.blackninja745studios.lightweighthomes.CommandError;
+import org.blackninja745studios.lightweighthomes.HomeDataManager;
 import org.blackninja745studios.lightweighthomes.LightweightHomes;
 import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public class SetHomeCommand extends Command {
     private static final String COMMAND_NAME = "sethome";
 
-    private final LightweightHomes plugin;
+    private final HomeDataManager dataManager;
 
-    public SetHomeCommand(LightweightHomes plugin) {
+    public SetHomeCommand(HomeDataManager dataManager) {
         super(COMMAND_NAME, "Sets a player's home.", "/sethome [<player>] [<x> <y> <z> <world>]", List.of());
-        this.plugin = plugin;
+        this.dataManager = dataManager;
     }
 
     @Override
@@ -40,7 +40,7 @@ public class SetHomeCommand extends Command {
                     }
 
                     Location loc = player.getLocation();
-                    createHome(player, loc);
+                    dataManager.createHome(player.getPersistentDataContainer(), loc);
 
                     player.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                         "Created home at (%.1f, %.1f, %.1f).",
@@ -65,7 +65,7 @@ public class SetHomeCommand extends Command {
 
                     if (target != null) {
                         Location loc = player.getLocation();
-                        createHome(target, loc);
+                        dataManager.createHome(target.getPersistentDataContainer(), loc);
 
                         player.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                                 "Created home for %s at (%.1f, %.1f, %.1f).",
@@ -98,7 +98,7 @@ public class SetHomeCommand extends Command {
                     return true;
                 }
 
-                createHome(target, loc);
+                dataManager.createHome(target.getPersistentDataContainer(), loc);
 
                 sender.sendMessage(LightweightHomes.addPluginPrefix(Component.text(String.format(
                         "Created home for %s at (%.1f, %.1f, %.1f) in world \"%s.\"",
@@ -112,13 +112,22 @@ public class SetHomeCommand extends Command {
         return true;
     }
 
-    private void createHome(Player player, Location l) {
-        PersistentDataContainer data = player.getPersistentDataContainer();
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args, @Nullable Location location) throws IllegalArgumentException {
+        if (!sender.hasPermission(Permissions.MANAGE_HOMES) || !sender.hasPermission(Permissions.SET_HOME))
+            return ImmutableList.of();
 
-        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "x"), PersistentDataType.DOUBLE, l.getX());
-        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "y"), PersistentDataType.DOUBLE, l.getY());
-        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "z"), PersistentDataType.DOUBLE, l.getZ());
-        data.set(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING, l.getWorld().getUID().toString());
+        if (location == null)
+            return args.length == 1 ? super.tabComplete(sender, alias, args) : ImmutableList.of();
+
+        switch (args.length) {
+            case 1 -> { return super.tabComplete(sender, alias, args); }
+            case 2 -> { return ImmutableList.of(String.format("%.2f", location.getX())); }
+            case 3 -> { return ImmutableList.of(String.format("%.2f", location.getY())); }
+            case 4 -> { return ImmutableList.of(String.format("%.2f", location.getZ())); }
+            case 5 -> { return ImmutableList.of(location.getWorld().getName()); }
+            default -> { return ImmutableList.of(); }
+        }
     }
 
     private static Location parseLocationFromArgs(String[] args) {

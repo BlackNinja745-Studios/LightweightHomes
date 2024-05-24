@@ -1,30 +1,28 @@
 package org.blackninja745studios.lightweighthomes.commands;
 
+import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.blackninja745studios.lightweighthomes.CommandError;
-import org.blackninja745studios.lightweighthomes.LightweightHomes;
+import org.blackninja745studios.lightweighthomes.HomeDataManager;
 import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.UUID;
 import java.util.List;
 
 public class UseHomeCommand extends Command {
 
     private static final String COMMAND_NAME = "home";
-    private final LightweightHomes plugin;
+    private final HomeDataManager dataManager;
 
-    public UseHomeCommand(LightweightHomes plugin) {
+    public UseHomeCommand(HomeDataManager dataManager) {
         super(COMMAND_NAME, "Returns a calling player to their set home.", "/home", List.of());
-        this.plugin = plugin;
+        this.dataManager = dataManager;
     }
 
     @Override
@@ -72,33 +70,27 @@ public class UseHomeCommand extends Command {
         return true;
     }
 
-    private boolean sendPlayerHome(Player sender, Player owner) {
-        Location targetHome = buildLocationFromData(owner.getPersistentDataContainer());
-        return targetHome != null && sender.teleport(targetHome);
-    }
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) {
+        if (!sender.hasPermission(Permissions.USE_HOME))
+            return ImmutableList.of();
 
-    private Location buildLocationFromData(PersistentDataContainer data) {
-        String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z"};
-
-        double[] loc = new double[3];
-
-        for (int i = 0; i < 3; ++i) {
-            if (data.has(new NamespacedKey(plugin, keys[i]), PersistentDataType.DOUBLE))
-                loc[i] = data.get(new NamespacedKey(plugin, keys[i]), PersistentDataType.DOUBLE);
-            else
-                return null;
+        if (sender.hasPermission(Permissions.MANAGE_HOMES) && args.length == 1) {
+            return sender.getServer()
+                    .getOnlinePlayers()
+                    .stream()
+                    .filter(p -> dataManager.hasHomeData(p.getPersistentDataContainer()))
+                    .map(Player::getName)
+                    .filter(n -> StringUtil.startsWithIgnoreCase(n, args[0]))
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .toList();
         }
 
-        String worldUID;
+        return ImmutableList.of();
+    }
 
-        if (data.has(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING))
-            worldUID = data.get(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING);
-        else
-            return null;
-
-        return new Location(
-                plugin.getServer().getWorld(UUID.fromString(worldUID)),
-                loc[0], loc[1], loc[2]
-        );
+    private boolean sendPlayerHome(Player sender, Player owner) {
+        Location targetHome = dataManager.getHomeLocation(owner.getPersistentDataContainer());
+        return targetHome != null && sender.teleport(targetHome);
     }
 }

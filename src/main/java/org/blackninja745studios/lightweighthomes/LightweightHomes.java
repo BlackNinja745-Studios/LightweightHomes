@@ -11,17 +11,17 @@ import java.util.List;
 import java.util.logging.Level;
 
 public final class LightweightHomes extends JavaPlugin {
-    public static final String PDS_KEY_PREFIX = "lightweighthomes.";
 
     @Override
     public void onEnable() {
-
         Permissions.initialize();
 
+        HomeDataManager dataManager = new HomeDataManager(this);
+
         getServer().getCommandMap().registerAll("lightweighthomes", List.of(
-            new UseHomeCommand(this),
-            new SetHomeCommand(this),
-            new RemoveHomeCommand(this)
+            new UseHomeCommand(dataManager),
+            new SetHomeCommand(dataManager),
+            new RemoveHomeCommand(dataManager)
         ));
 
         getLogger().log(Level.INFO, "Finished initializing Lightweight Homes!");
