@@ -1,5 +1,6 @@
 package org.blackninja745studios.lightweighthomes.commands;
 
+import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -16,6 +17,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -110,6 +112,24 @@ public class SetHomeCommand extends Command {
         }
 
         return true;
+    }
+
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args, @Nullable Location location) throws IllegalArgumentException {
+        if (!sender.hasPermission(Permissions.MANAGE_HOMES) || !sender.hasPermission(Permissions.SET_HOME))
+            return ImmutableList.of();
+
+        if (location == null)
+            return args.length == 1 ? super.tabComplete(sender, alias, args) : ImmutableList.of();
+
+        switch (args.length) {
+            case 1 -> { return super.tabComplete(sender, alias, args); }
+            case 2 -> { return ImmutableList.of(String.format("%.2f", location.getX())); }
+            case 3 -> { return ImmutableList.of(String.format("%.2f", location.getY())); }
+            case 4 -> { return ImmutableList.of(String.format("%.2f", location.getZ())); }
+            case 5 -> { return ImmutableList.of(location.getWorld().getName()); }
+            default -> { return ImmutableList.of(); }
+        }
     }
 
     private void createHome(Player player, Location l) {

@@ -1,5 +1,6 @@
 package org.blackninja745studios.lightweighthomes.commands;
 
+import com.google.common.collect.ImmutableList;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -13,8 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
-
 import java.util.List;
 
 public class RemoveHomeCommand extends Command {
@@ -82,10 +83,29 @@ public class RemoveHomeCommand extends Command {
         return true;
     }
 
+    @Override
+    public @NotNull List<String> tabComplete(@NotNull CommandSender sender, @NotNull String alias, @NotNull String[] args) throws IllegalArgumentException {
+        if (!sender.hasPermission(Permissions.REMOVE_HOME))
+            return ImmutableList.of();
+
+        if (sender.hasPermission(Permissions.MANAGE_HOMES) && args.length == 1) {
+            return sender.getServer()
+                    .getOnlinePlayers()
+                    .stream()
+                    .filter(p -> LightweightHomes.hasHomeData(p, plugin))
+                    .map(Player::getName)
+                    .filter(n -> StringUtil.startsWithIgnoreCase(n, args[0]))
+                    .sorted(String.CASE_INSENSITIVE_ORDER)
+                    .toList();
+        }
+
+        return ImmutableList.of();
+    }
+
     private boolean removeHome(Player p) {
         PersistentDataContainer data = p.getPersistentDataContainer();
 
-        String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z" };
+        final String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z" };
 
         for (String key : keys)
             if (data.has(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE))
