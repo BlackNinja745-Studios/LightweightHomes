@@ -21,7 +21,7 @@ public class UseHomeCommand extends Command {
     private final HomeDataManager dataManager;
 
     public UseHomeCommand(HomeDataManager dataManager) {
-        super(COMMAND_NAME, "Returns a calling player to their set home.", "/home", List.of());
+        super(COMMAND_NAME, "Returns a calling player to their set home.", "/home [<player>]", List.of());
         this.dataManager = dataManager;
     }
 
