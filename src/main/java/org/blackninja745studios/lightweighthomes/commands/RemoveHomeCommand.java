@@ -5,15 +5,13 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.blackninja745studios.lightweighthomes.CommandError;
+import org.blackninja745studios.lightweighthomes.HomeDataManager;
 import org.blackninja745studios.lightweighthomes.LightweightHomes;
 import org.blackninja745studios.lightweighthomes.Permissions;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.StringUtil;
 import org.jetbrains.annotations.NotNull;
 import java.util.List;
@@ -21,11 +19,11 @@ import java.util.List;
 public class RemoveHomeCommand extends Command {
     private static final String COMMAND_NAME = "removehome";
 
-    private final LightweightHomes plugin;
+    private final HomeDataManager dataManager;
 
-    public RemoveHomeCommand(LightweightHomes plugin) {
+    public RemoveHomeCommand(HomeDataManager dataManager) {
         super(COMMAND_NAME, "Deletes a player's home.", "/removehome [<player>]", List.of());
-        this.plugin = plugin;
+        this.dataManager = dataManager;
     }
 
     @Override
@@ -38,7 +36,7 @@ public class RemoveHomeCommand extends Command {
                         return true;
                     }
 
-                    if (removeHome(player)) {
+                    if (dataManager.removeHome(player.getPersistentDataContainer())) {
                         player.sendMessage(LightweightHomes.addPluginPrefix(
                                 Component.text("Removed your home!", NamedTextColor.WHITE)
                         ));
@@ -66,7 +64,7 @@ public class RemoveHomeCommand extends Command {
                 if (target == null) {
                     sender.sendMessage(CommandError.messageOf(CommandError.OFFLINE_PLAYER));
                 } else {
-                    if (removeHome(target)) {
+                    if (dataManager.removeHome(target.getPersistentDataContainer())) {
                         sender.sendMessage(LightweightHomes.addPluginPrefix(Component.text(
                             PlainTextComponentSerializer.plainText().serialize(target.displayName()) + "'s home removed!", NamedTextColor.WHITE
                         )));
@@ -92,7 +90,7 @@ public class RemoveHomeCommand extends Command {
             return sender.getServer()
                     .getOnlinePlayers()
                     .stream()
-                    .filter(p -> LightweightHomes.hasHomeData(p, plugin))
+                    .filter(p -> dataManager.hasHomeData(p.getPersistentDataContainer()))
                     .map(Player::getName)
                     .filter(n -> StringUtil.startsWithIgnoreCase(n, args[0]))
                     .sorted(String.CASE_INSENSITIVE_ORDER)
@@ -100,21 +98,5 @@ public class RemoveHomeCommand extends Command {
         }
 
         return ImmutableList.of();
-    }
-
-    private boolean removeHome(Player p) {
-        PersistentDataContainer data = p.getPersistentDataContainer();
-
-        final String[] keys = { LightweightHomes.PDS_KEY_PREFIX + "x", LightweightHomes.PDS_KEY_PREFIX + "y", LightweightHomes.PDS_KEY_PREFIX + "z" };
-
-        for (String key : keys)
-            if (data.has(new NamespacedKey(plugin, key), PersistentDataType.DOUBLE))
-                data.remove(new NamespacedKey(plugin, key));
-
-        boolean hasWorldKey = data.has(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"), PersistentDataType.STRING);
-        if (hasWorldKey)
-            data.remove(new NamespacedKey(plugin, LightweightHomes.PDS_KEY_PREFIX + "world"));
-
-        return hasWorldKey;
     }
 }
