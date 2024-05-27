@@ -3,7 +3,10 @@
 Lightweight Homes is a simple, lightweight plugin to allow players to create homes!
 Our focus is on providing only essential features, without extra complexity you'll never use, ensuring the plugin remains lightweight and highly performant.
 
+![LightweightHomes Demo](https://github.com/BlackNinja745-Studios/LightweightHomes/assets/83134184/f66df45b-f8b7-49f9-8e2f-beb9779c932c)
+
 ## Features
+
 - `/home`, `/sethome`, and `/removehome` to use, create, and delete your home!
 - Players are limited to one home each, simplifying usage.
 - Fully configurable permissions.
