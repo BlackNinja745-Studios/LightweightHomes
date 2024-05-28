@@ -6,7 +6,7 @@
 
     <groupId>org.blackninja745studios</groupId>
     <artifactId>LightweightHomes</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>LightweightHomes</name>
@@ -40,7 +40,6 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputDirectory>server/plugins</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
